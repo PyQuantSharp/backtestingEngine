@@ -1,10 +1,12 @@
 import string
 import datetime
 from enum import Enum
-from typing import Dict, Any
+import tkinter as tk
 
-import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
 
 class Timeframe(Enum):
@@ -29,15 +31,23 @@ class ExecutionEngine:
     def __init__(self):
         self.openOrders = []
 
-    def executeOrder(self, order: dict, order_executed: callable) -> None:
-        order["order_executed"] = order_executed
-        self.openOrders.append(order)
+    def executeOrder(
+            self, order: dict,
+            broker,
+            order_executed_callback: callable,
+            order_rejected_callback: callable
+    ) -> None:
+        if order["action"] == "buy":
+            if broker.portfolio.balance >= order["price"] * order["quantity"]:
+                order["order_executed_callback"] = order_executed_callback
+                self.openOrders.append(order)
+            else:
+                order_rejected_callback(order, "Not enough funds")
 
-    def checkOrders(self, current_moment: datetime.datetime) -> None:
+    def checkOrders(self, current_moment) -> None:
         for order in self.openOrders:
-            order["order_executed"](order, current_moment)
+            order["order_executed_callback"](order, current_moment)
             self.openOrders.remove(order)
-        pass
 
 
 class TimeMachine:
@@ -56,10 +66,13 @@ class TimeMachine:
                 return snapshot
                 pass
             case Timeframe.MINUTE:
+                raise NotImplementedError
                 pass
             case Timeframe.SECOND:
+                raise NotImplementedError
                 pass
             case Timeframe.TICK:
+                raise NotImplementedError
                 pass
             case _:
                 raise ValueError("Unknown timeframe")
@@ -80,9 +93,17 @@ class Broker:
 
     def addOrder(self, order: dict):
         self.openOrders.append(order)
-        self.executionEngine.executeOrder(order, order_executed=self.onOrderExecuted)
+        self.executionEngine.executeOrder(
+            order,
+            self,
+            order_executed_callback=self._onOrderExecuted,
+            order_rejected_callback=self._onOrderRejected
+        )
 
-    def onOrderExecuted(self, transaction: dict, current_moment: datetime.datetime):
+    def _onOrderRejected(self, order: dict, reason: str):
+        print("Order rejected:", order, reason)
+
+    def _onOrderExecuted(self, transaction: dict, current_moment: datetime.datetime):
         self.portfolio.addTransaction(transaction, current_moment)
         self.openOrders.remove(transaction)
 
@@ -107,7 +128,6 @@ class Backtest:
         self.broker = Broker(self.start_balance, self.timerange[0])
 
     def run(self) -> None:
-
         while True:
             snapshot = self.timeMachine.nextMoment()
             if snapshot["time"] >= self.timerange[1]:
@@ -115,24 +135,24 @@ class Backtest:
             self.broker.executionEngine.checkOrders(snapshot)
             self.strategy.onData(snapshot, self.broker)
             self.broker.portfolio.updatePortfolio(snapshot)
+        self.results()
 
     def results(self) -> None:
-        df = self.broker.portfolio.history
-        df["Equity"] = df["holdingsValue"] + df["balance"]
-        df.plot()
-        plt.show()
+        reswin = ResultsWindow(self.broker.portfolio.history)
+        reswin.mainloop()
 
 
 class Portfolio:
     def __init__(self, start_balance: float, start_date: datetime.datetime):
         self.balance = start_balance
         self.history = pd.DataFrame(columns=["balance"])
-        self.history = pd.concat([self.history, pd.DataFrame({"balance": self.balance}, index=[start_date])])
+        self.history = pd.concat([self.history, pd.DataFrame({"balance": self.balance, "holdingsValue": 0}, index=[start_date])])
         self.holdings = {}
         self.holdingsValue = 0.0
 
-    def updatePortfolio(self, current_moment: datetime.datetime) -> None:
+    def updatePortfolio(self, current_moment) -> None:
         self._updateHoldingsValue(current_moment)
+        self._saveToHistory(current_moment)
         pass
 
     def addTransaction(self, transaction: dict, current_moment: datetime.datetime) -> None:
@@ -173,3 +193,25 @@ class Portfolio:
         self.holdingsValue = 0.0
         for symbol, holding in self.holdings.items():
             self.holdingsValue += current_moment["data"].iloc[-1]["Close"] * holding["quantity"]
+
+
+class ResultsWindow(tk.Tk):
+    def __init__(self, portfolio_history):
+        self.portfolioHistory = portfolio_history
+        super().__init__()
+
+        self.title('Portfolio History')
+
+        fig = Figure(dpi=100)
+        plot1 = fig.add_subplot(111)
+        print(self.portfolioHistory)
+        self.portfolioHistory["Equity"] = self.portfolioHistory["balance"] + self.portfolioHistory["holdingsValue"]
+        plot1.plot(self.portfolioHistory)
+        plot1.legend(["Balance", "Holdings", "Equity"])
+
+        canvas = FigureCanvasTkAgg(fig, master=self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill='both', expand=True)
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas.get_tk_widget().pack()
