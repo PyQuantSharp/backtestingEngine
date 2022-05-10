@@ -8,10 +8,10 @@ class Strategy(StrategyBase):
     def onData(self, snapshot, broker) -> None:
         if random.random() > 0.43:
             broker.addOrder(
-                {"symbol": "AAPL", "price": 10,"action": "buy", "orderType": "market"})
+                {"symbol": "AAPL", "quantity": 5, "orderType": "market"})
         else:
             broker.addOrder(
-                {"symbol": "AAPL", "price": 20,"action": "sell", "orderType": "market"})
+                {"symbol": "AAPL", "quantity": -5, "orderType": "market"})
 
 
 if __name__ == "__main__":
