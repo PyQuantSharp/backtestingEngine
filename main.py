@@ -38,6 +38,7 @@ class Backtest:
             self.broker.executionEngine.checkOrders(snapshot)
             self.strategy.onData(snapshot, self.broker)
             self.broker.portfolio.updatePortfolio(snapshot)
+
         self.results()
 
     def results(self) -> None:

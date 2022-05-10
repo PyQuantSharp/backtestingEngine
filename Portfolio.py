@@ -22,26 +22,15 @@ class Portfolio:
         self._saveToHistory(current_moment)
 
     def _updateBalance(self, transaction: dict) -> None:
-        if transaction["action"] == "buy":
-            self.balance -= transaction["quantity"] * transaction["price"]
-        elif transaction["action"] == "sell":
-            self.balance += transaction["quantity"] * transaction["price"]
+        self.balance -= transaction["quantity"] * transaction["price"]
 
     def _updateHoldings(self, transaction: dict) -> None:
-        if transaction["action"] == "buy":
-            if not transaction["symbol"] in self.holdings:
-                self.holdings[transaction["symbol"]] = {"quantity": transaction["quantity"],
-                                                        "value": transaction["quantity"] * transaction["price"]}
-            else:
-                self.holdings[transaction["symbol"]]["quantity"] += transaction["quantity"]
-                self.holdings[transaction["symbol"]]["value"] += transaction["quantity"] * transaction["price"]
-        elif transaction["action"] == "sell":
-            if not transaction["symbol"] in self.holdings:
-                self.holdings[transaction["symbol"]] = {"quantity": transaction["quantity"],
-                                                        "value": transaction["quantity"] * transaction["price"]}
-            else:
-                self.holdings[transaction["symbol"]]["quantity"] -= transaction["quantity"]
-                self.holdings[transaction["symbol"]]["value"] -= transaction["quantity"] * transaction["price"]
+        if not transaction["symbol"] in self.holdings:
+            self.holdings[transaction["symbol"]] = {"quantity": transaction["quantity"],
+                                                    "value": transaction["quantity"] * transaction["price"]}
+        else:
+            self.holdings[transaction["symbol"]]["quantity"] += transaction["quantity"]
+            self.holdings[transaction["symbol"]]["value"] += transaction["quantity"] * transaction["price"]
 
     def _saveToHistory(self, current_moment: datetime.datetime) -> None:
         self.history = pd.concat([self.history, pd.DataFrame({

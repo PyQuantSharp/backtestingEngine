@@ -5,11 +5,13 @@ class ExecutionEngine:
     def executeOrder(
             self, order: dict,
             broker,
+            current_moment,
             order_executed_callback: callable,
             order_rejected_callback: callable
     ) -> None:
-        if broker.portfolio.balance >= order["price"] * order["quantity"]:
+        if broker.portfolio.balance >= current_moment["data"].iloc[-1]["Close"] * order["quantity"]:
             order["order_executed_callback"] = order_executed_callback
+            order["price"] = current_moment["data"].iloc[-1]["Close"]
             self.openOrders.append(order)
         else:
             order_rejected_callback(order, "Not enough funds")
