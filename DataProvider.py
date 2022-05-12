@@ -22,6 +22,7 @@ class DataProvider:
             case _:
                 raise Exception("Unknown source")
 
+        df["time"] = pd.to_datetime(df["time"])
         df.index = pd.to_datetime(df["time"])
         self.dataSets[dataset["name"]] = df
 

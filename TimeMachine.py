@@ -43,6 +43,5 @@ class TimeMachine:
         }
 
         for name, dataset in self.dataProvider.dataSets.items():
-            snapshot["data"][name] = dataset[dataset.index < self._currentTime]
-        # print(snapshot)
+            snapshot["data"][name] = dataset[dataset.index < self._currentTime].tail(100)
         return snapshot

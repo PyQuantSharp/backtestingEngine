@@ -19,15 +19,14 @@ class Strategy(StrategyBase):
             "orderType": "market",
             "dataset": "spy_options_eod",
         }, snapshot)
-        print(snapshot["time"])
 
 
 if __name__ == "__main__":
-    backtest = Backtest(Strategy("Test"), (datetime.datetime(2020, 8, 2), datetime.datetime(2030, 5, 6)),
+    backtest = Backtest(Strategy("Test"), (datetime.datetime(2020, 8, 2), datetime.datetime(2022, 5, 6)),
                         Timeframe.DAILY)
 
     backtest.dataProvider.addDataset({
-        "name": "spy",
+        "name": "SPY",
         "source": "File",
         "set": "C:\\Development\\Trading\\dataDownload\\dataCache\\SPY-equity.csv",
     })
@@ -37,7 +36,6 @@ if __name__ == "__main__":
         "source": "Database",
         "set": "spy_options_eod",
         "type": "options",
-        "underlying": "spy"
     })
 
     backtest.dataProvider.addDataset({

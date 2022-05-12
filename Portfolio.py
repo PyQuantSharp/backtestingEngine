@@ -1,5 +1,5 @@
 import pandas as pd
-from Utils import tickerIsOption
+from Utils import tickerIsOption, getUnderlying
 
 
 class Portfolio:
@@ -43,6 +43,13 @@ class Portfolio:
         self.holdingsValue = 0.0
         for ticker, holding in self.holdings.items():
             if tickerIsOption(ticker):
-                pass
+
+                # TODO Strikepreis ziehen
+                # TODO Optionen auf OptionContract Klasse umbauen
+                strike = 250
+
+                underlying = current_moment["data"][getUnderlying(ticker)]
+                self.holdingsValue += (underlying[underlying["time"] <= current_moment["time"]].iloc[-1][
+                                           "close"] - strike) * holding["quantity"]
             else:
                 self.holdingsValue += current_moment["data"][ticker].iloc[-1]["close"] * holding["quantity"]
