@@ -12,6 +12,7 @@ class ExecutionEngine:
             order_executed_callback: callable,
             order_rejected_callback: callable
     ) -> None:
+        # print("Executing order:", order, current_moment["time"])
         if tickerIsOption(order["ticker"]):
             df = current_moment["data"][order["dataset"]]
             df = df[df["symbol"] == order["ticker"]]
@@ -23,11 +24,15 @@ class ExecutionEngine:
                 order["order_executed_callback"] = order_executed_callback
                 order["price"] = df["close"]
                 self.openOrders.append(order)
+                order["order_executed_callback"](order, current_moment)
+                self.openOrders.remove(order)
         else:
             if broker.portfolio.balance >= current_moment["data"][order["ticker"]].iloc[-1]["close"] * order["quantity"]:
                 order["order_executed_callback"] = order_executed_callback
                 order["price"] = current_moment["data"][order["ticker"]].iloc[-1]["close"]
                 self.openOrders.append(order)
+                order["order_executed_callback"](order, current_moment)
+                self.openOrders.remove(order)
             else:
                 order_rejected_callback(order, "Not enough funds")
 

@@ -23,6 +23,18 @@ class DataProvider:
                 raise Exception("Unknown source")
 
         df["time"] = pd.to_datetime(df["time"])
+
+        ################################################################################################################
+        # TODO: Entfernen
+
+        try:
+            df["symbol"] = df["symbol"] + "|" + df["strike"].astype(str)
+            df = df[df["type"] == "Call"]
+        except KeyError:
+            x = 0
+
+
+        ################################################################################################################
         df.index = pd.to_datetime(df["time"])
         self.dataSets[dataset["name"]] = df
 

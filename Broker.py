@@ -11,6 +11,7 @@ class Broker:
         self.portfolio = Portfolio(start_balance, start_date)
         self.executionEngine = ExecutionEngine()
         self.dataProvider = data_provider
+        self.x = False
 
     def addOrder(self, order: dict, current_moment) -> None:
         self.openOrders.append(order)
@@ -30,5 +31,6 @@ class Broker:
         pass
 
     def _onOrderExecuted(self, transaction: dict, current_moment):
+        # print("Order executed:", transaction)
         self.portfolio.addTransaction(transaction, current_moment)
         self.openOrders.remove(transaction)

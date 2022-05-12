@@ -10,6 +10,7 @@ class Portfolio:
             [self.history, pd.DataFrame({"balance": self.balance, "holdingsValue": 0}, index=[start_date])])
         self.holdings = {}
         self.holdingsValue = 0.0
+        self.x = False
 
     def updatePortfolio(self, current_moment) -> None:
         self._updateHoldingsValue(current_moment)
@@ -17,6 +18,12 @@ class Portfolio:
         pass
 
     def addTransaction(self, transaction: dict, current_moment) -> None:
+        if self.x and 0:
+            return
+        else:
+            print("HÄ")
+        self.x = True
+        print(transaction, current_moment["time"])
         self._updateBalance(transaction)
         self._updateHoldings(transaction)
         self._updateHoldingsValue(current_moment)
@@ -48,7 +55,8 @@ class Portfolio:
                 underlying = underlying[underlying["time"] <= current_moment["time"]]
 
                 if current_moment["time"] > getExpirationDate(ticker):
-                    self.holdingsValue += underlying.iloc[-1]["close"] * holding["quantity"]
+                    # self.holdingsValue += underlying.iloc[-1]["close"] * holding["quantity"]
+                    self.balance += holding["quantity"] * (underlying.iloc[-1]["close"] - getStrikePrice(ticker))
                     expired_options.append(ticker)
                 else:
                     self.holdingsValue += (underlying.iloc[-1]["close"] - getStrikePrice(ticker)) * holding["quantity"]

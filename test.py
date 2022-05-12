@@ -9,21 +9,23 @@ pd.set_option('display.width', 1000)
 
 
 class Strategy(StrategyBase):
+    def __init__(self, strategy_name: str):
+        self.x = False
 
     def onData(self, snapshot, broker) -> None:
         tickers = broker.getTickers(snapshot["time"])
-
-        broker.addOrder({
-            "ticker": tickers[random.randint(0, len(tickers) - 1)],
-            "quantity": random.randint(1, 10),
-            "orderType": "market",
-            "dataset": "spy_options_eod",
-            "strike": random.randint(300, 500),
-        }, snapshot)
+        for ticker in tickers:
+            broker.addOrder({
+                "ticker": ticker,
+                "quantity": 1,
+                "orderType": "market",
+                "dataset": "spy_options_eod",
+            }, snapshot)
+            self.x = True
 
 
 if __name__ == "__main__":
-    backtest = Backtest(Strategy("Test"), (datetime.datetime(2020, 8, 2), datetime.datetime(2022, 5, 6)),
+    backtest = Backtest(Strategy("Test"), (datetime.datetime(2020, 9, 16, 2, 0), datetime.datetime(2020, 9, 19)),
                         Timeframe.DAILY)
 
     backtest.dataProvider.addDataset({

@@ -13,7 +13,7 @@ def getUnderlying(ticker: str) -> str:
 
 
 def getStrikePrice(ticker: str) -> float:
-    return 250.0
+    return float(ticker.split("|")[-1])
 
 
 def calculateProfitFactor(x: Any) -> float:
@@ -21,4 +21,4 @@ def calculateProfitFactor(x: Any) -> float:
 
 
 def getExpirationDate(ticker: str) -> datetime.datetime:
-    return datetime.datetime(2020, 12, 18, 0, 0, 0)
+    return datetime.datetime(2020, 9, 17, 0, 0, 0)

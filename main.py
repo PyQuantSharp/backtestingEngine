@@ -57,7 +57,7 @@ class ResultsWindow(tk.Tk):
         plot1 = fig.add_subplot(111)
         print(self.portfolioHistory)
         self.portfolioHistory["Equity"] = self.portfolioHistory["balance"] + self.portfolioHistory["holdingsValue"]
-        plot1.plot(self.portfolioHistory)
+        plot1.plot(self.portfolioHistory, markevery=10)
         plot1.legend(["Balance", "Holdings", "Equity"])
         print(calculateProfitFactor(self.portfolioHistory))
         canvas = FigureCanvasTkAgg(fig, master=self)
