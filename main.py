@@ -5,18 +5,12 @@ from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
+from Utils import calculateProfitFactor
 from enums import Timeframe
 from DataProvider import DataProvider
 from Broker import Broker
 from TimeMachine import TimeMachine
-
-
-class StrategyBase:
-    def __init__(self, strategy_name: string):
-        self.strategy_name = strategy_name
-
-    def onData(self, snapshot, broker: Broker) -> None:
-        raise NotImplementedError("onData not defined in strategy")
+from StrategyBase import StrategyBase
 
 
 class Backtest:
@@ -61,11 +55,11 @@ class ResultsWindow(tk.Tk):
 
         fig = Figure(dpi=100)
         plot1 = fig.add_subplot(111)
-        # print(self.portfolioHistory)
+        print(self.portfolioHistory)
         self.portfolioHistory["Equity"] = self.portfolioHistory["balance"] + self.portfolioHistory["holdingsValue"]
         plot1.plot(self.portfolioHistory)
         plot1.legend(["Balance", "Holdings", "Equity"])
-
+        print(calculateProfitFactor(self.portfolioHistory))
         canvas = FigureCanvasTkAgg(fig, master=self)
         canvas.draw()
         canvas.get_tk_widget().pack(fill='both', expand=True)

@@ -1,5 +1,5 @@
 import pandas as pd
-from Utils import tickerIsOption, getUnderlying
+from Utils import *
 
 
 class Portfolio:
@@ -41,15 +41,18 @@ class Portfolio:
 
     def _updateHoldingsValue(self, current_moment: dict) -> None:
         self.holdingsValue = 0.0
+        expired_options = []
         for ticker, holding in self.holdings.items():
             if tickerIsOption(ticker):
-
-                # TODO Strikepreis ziehen
-                # TODO Optionen auf OptionContract Klasse umbauen
-                strike = 250
-
                 underlying = current_moment["data"][getUnderlying(ticker)]
-                self.holdingsValue += (underlying[underlying["time"] <= current_moment["time"]].iloc[-1][
-                                           "close"] - strike) * holding["quantity"]
+                underlying = underlying[underlying["time"] <= current_moment["time"]]
+
+                if current_moment["time"] > getExpirationDate(ticker):
+                    self.holdingsValue += underlying.iloc[-1]["close"] * holding["quantity"]
+                    expired_options.append(ticker)
+                else:
+                    self.holdingsValue += (underlying.iloc[-1]["close"] - getStrikePrice(ticker)) * holding["quantity"]
             else:
                 self.holdingsValue += current_moment["data"][ticker].iloc[-1]["close"] * holding["quantity"]
+        for ticker in expired_options:
+            del self.holdings[ticker]

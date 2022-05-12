@@ -18,6 +18,7 @@ class Strategy(StrategyBase):
             "quantity": random.randint(1, 10),
             "orderType": "market",
             "dataset": "spy_options_eod",
+            "strike": random.randint(300, 500),
         }, snapshot)
 
 
