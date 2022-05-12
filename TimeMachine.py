@@ -41,9 +41,8 @@ class TimeMachine:
             "time": self._currentTime,
             "data": {}
         }
+
         for name, dataset in self.dataProvider.dataSets.items():
-            if self._currentTime in dataset.index:
-                snapshot["data"][name] = dataset.loc[:self._currentTime:]
-            else:
-                snapshot["data"][name] = pd.DataFrame()
+            snapshot["data"][name] = dataset[dataset.index < self._currentTime]
+        # print(snapshot)
         return snapshot

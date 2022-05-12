@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 from DbConnector import DbConnector
 
@@ -19,8 +21,19 @@ class DataProvider:
                 pass
             case _:
                 raise Exception("Unknown source")
+
         df.index = pd.to_datetime(df["time"])
         self.dataSets[dataset["name"]] = df
+
+    def getTickers(self, timestamp: datetime.datetime) -> list:
+        tickers = []
+        for key in self.dataSets.keys():
+            if "symbol" in self.dataSets[key].columns:
+                for i in self.dataSets[key][self.dataSets[key].index <= timestamp]["symbol"].unique():
+                    tickers.append(i)
+            else:
+                tickers.append(key)
+        return tickers
 
     def _getDatasetFromDb(self, dataset: dict) -> pd.DataFrame:
         df = self.db.getTable(dataset["set"])

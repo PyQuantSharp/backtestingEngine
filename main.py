@@ -28,7 +28,7 @@ class Backtest:
         self.start_balance = start_balance
         self.dataProvider = DataProvider()
         self.timeMachine = TimeMachine(timerange, timeframe, self.dataProvider)
-        self.broker = Broker(self.start_balance, self.timerange[0])
+        self.broker = Broker(self.start_balance, self.timerange[0], self.dataProvider)
 
     def run(self) -> None:
         while True:
@@ -61,7 +61,7 @@ class ResultsWindow(tk.Tk):
 
         fig = Figure(dpi=100)
         plot1 = fig.add_subplot(111)
-        print(self.portfolioHistory)
+        # print(self.portfolioHistory)
         self.portfolioHistory["Equity"] = self.portfolioHistory["balance"] + self.portfolioHistory["holdingsValue"]
         plot1.plot(self.portfolioHistory)
         plot1.legend(["Balance", "Holdings", "Equity"])

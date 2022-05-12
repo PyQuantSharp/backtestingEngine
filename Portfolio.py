@@ -1,5 +1,6 @@
-import datetime
 import pandas as pd
+from Utils import tickerIsOption
+
 
 class Portfolio:
     def __init__(self, start_balance: float, start_date):
@@ -25,12 +26,12 @@ class Portfolio:
         self.balance -= transaction["quantity"] * transaction["price"]
 
     def _updateHoldings(self, transaction: dict) -> None:
-        if not transaction["symbol"] in self.holdings:
-            self.holdings[transaction["symbol"]] = {"quantity": transaction["quantity"],
+        if not transaction["ticker"] in self.holdings:
+            self.holdings[transaction["ticker"]] = {"quantity": transaction["quantity"],
                                                     "value": transaction["quantity"] * transaction["price"]}
         else:
-            self.holdings[transaction["symbol"]]["quantity"] += transaction["quantity"]
-            self.holdings[transaction["symbol"]]["value"] += transaction["quantity"] * transaction["price"]
+            self.holdings[transaction["ticker"]]["quantity"] += transaction["quantity"]
+            self.holdings[transaction["ticker"]]["value"] += transaction["quantity"] * transaction["price"]
 
     def _saveToHistory(self, current_moment) -> None:
         self.history = pd.concat([self.history, pd.DataFrame({
@@ -38,7 +39,10 @@ class Portfolio:
             "holdingsValue": self.holdingsValue,
         }, index=[current_moment["time"]])])
 
-    def _updateHoldingsValue(self, current_moment) -> None:
+    def _updateHoldingsValue(self, current_moment: dict) -> None:
         self.holdingsValue = 0.0
-        for symbol, holding in self.holdings.items():
-            self.holdingsValue += current_moment["data"].iloc[-1]["close"] * holding["quantity"]
+        for ticker, holding in self.holdings.items():
+            if tickerIsOption(ticker):
+                pass
+            else:
+                self.holdingsValue += current_moment["data"][ticker].iloc[-1]["close"] * holding["quantity"]
