@@ -35,6 +35,13 @@ class Backtest:
             snapshot = self.timeMachine.nextMoment()
             if snapshot["time"] >= self.timerange[1]:
                 break
+            new_data = False
+            for dataset in snapshot["data"].values():
+                if not dataset.empty:
+                    new_data = True
+                    break
+            if not new_data:
+                continue
             self.broker.executionEngine.checkOrders(snapshot)
             self.strategy.onData(snapshot, self.broker)
             self.broker.portfolio.updatePortfolio(snapshot)
@@ -42,8 +49,7 @@ class Backtest:
         self.results()
 
     def results(self) -> None:
-        reswin = ResultsWindow(self.broker.portfolio.history)
-        reswin.mainloop()
+        ResultsWindow(self.broker.portfolio.history).mainloop()
 
 
 class ResultsWindow(tk.Tk):

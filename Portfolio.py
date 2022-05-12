@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 
 class Portfolio:
-    def __init__(self, start_balance: float, start_date: datetime.datetime):
+    def __init__(self, start_balance: float, start_date):
         self.balance = start_balance
         self.history = pd.DataFrame(columns=["balance"])
         self.history = pd.concat(
@@ -15,7 +15,7 @@ class Portfolio:
         self._saveToHistory(current_moment)
         pass
 
-    def addTransaction(self, transaction: dict, current_moment: datetime.datetime) -> None:
+    def addTransaction(self, transaction: dict, current_moment) -> None:
         self._updateBalance(transaction)
         self._updateHoldings(transaction)
         self._updateHoldingsValue(current_moment)
@@ -32,7 +32,7 @@ class Portfolio:
             self.holdings[transaction["symbol"]]["quantity"] += transaction["quantity"]
             self.holdings[transaction["symbol"]]["value"] += transaction["quantity"] * transaction["price"]
 
-    def _saveToHistory(self, current_moment: datetime.datetime) -> None:
+    def _saveToHistory(self, current_moment) -> None:
         self.history = pd.concat([self.history, pd.DataFrame({
             "balance": self.balance,
             "holdingsValue": self.holdingsValue,
@@ -41,4 +41,4 @@ class Portfolio:
     def _updateHoldingsValue(self, current_moment) -> None:
         self.holdingsValue = 0.0
         for symbol, holding in self.holdings.items():
-            self.holdingsValue += current_moment["data"].iloc[-1]["Close"] * holding["quantity"]
+            self.holdingsValue += current_moment["data"].iloc[-1]["close"] * holding["quantity"]

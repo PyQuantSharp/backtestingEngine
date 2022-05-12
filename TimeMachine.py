@@ -1,4 +1,8 @@
 import datetime
+from typing import Any
+
+import pandas as pd
+
 from enums import Timeframe
 from DataProvider import DataProvider
 
@@ -6,16 +10,18 @@ from DataProvider import DataProvider
 class TimeMachine:
     def __init__(self, timerange: tuple[datetime.datetime, datetime.datetime], timeframe: Timeframe,
                  data_provider: DataProvider):
-        self.timerange = timerange
-        self.dataProvider = data_provider
         self.timeframe = timeframe
-        self._currentMoment = timerange[0]
+        self.timerange = timerange
+        if timeframe == Timeframe.DAILY:
+            self.timerange = (timerange[0].date(), timerange[1].date())
+        self.dataProvider = data_provider
+        self._currentTime = timerange[0]
 
     def nextMoment(self):
         match self.timeframe:
             case Timeframe.DAILY:
                 snapshot = self.nextDay()
-                self._currentMoment = self._currentMoment + datetime.timedelta(days=1)
+                self._currentTime = self._currentTime + datetime.timedelta(days=1)
                 return snapshot
                 pass
             case Timeframe.MINUTE:
@@ -30,9 +36,14 @@ class TimeMachine:
             case _:
                 raise ValueError("Unknown timeframe")
 
-    def nextDay(self):
+    def nextDay(self) -> dict[str, Any]:
+        snapshot = {
+            "time": self._currentTime,
+            "data": {}
+        }
         for name, dataset in self.dataProvider.dataSets.items():
-            try:
-                return {"data": dataset.loc[:self._currentMoment:], "time": self._currentMoment}
-            except KeyError as e:
-                print("No data in Dataset", name, "for", self._currentMoment)
+            if self._currentTime in dataset.index:
+                snapshot["data"][name] = dataset.loc[:self._currentTime:]
+            else:
+                snapshot["data"][name] = pd.DataFrame()
+        return snapshot

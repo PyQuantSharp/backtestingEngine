@@ -1,6 +1,4 @@
 import pandas as pd
-from matplotlib import pyplot as plt
-
 from DbConnector import DbConnector
 
 
@@ -9,24 +7,44 @@ class DataProvider:
         self.dataSets = {}
         self.db = DbConnector()
 
-    def addOptions(self, ticker) -> None:
-        self.dataSets[ticker + "_options"] = self.db.get_options(ticker)
+    def addDataset(self, dataset: dict) -> None:
+        match dataset["source"]:
+            case "Database":
+                df = self._getDatasetFromDb(dataset)
+            case "File":
+                df = self._getDatasetFromFile(dataset)
+                pass
+            case "DataFrame":
+                df = dataset["set"]
+                pass
+            case _:
+                raise Exception("Unknown source")
+        df.index = pd.to_datetime(df["time"])
+        self.dataSets[dataset["name"]] = df
 
-    def useDataSet(self, name, dataset) -> None:
-        self.db.getSet
+    def _getDatasetFromDb(self, dataset: dict) -> pd.DataFrame:
+        df = self.db.getTable(dataset["set"])
+        return df
 
-        dataset["Date"] = pd.to_datetime(dataset["Date"])
-        dataset.set_index("Date", inplace=True)
-        self.dataSets[name] = dataset
-
-    def _getSet(self, ticker):
-        return self.db.getSet(ticker)
-
-    def plotSet(self, name):
-        df = self._getSet(name)
-        df[["Open", "High", "Low", "Close"]].plot()
-        plt.show()
+    def _getDatasetFromFile(self, dataset: dict) -> pd.DataFrame:
+        return pd.read_csv(dataset["set"])
 
 
 if __name__ == '__main__':
-    DataProvider().plotSet("aapl_daily")
+    DataProvider().addDataset({
+        "name": "spy_options_eod1",
+        "source": "Database",
+        "set": "spy_options_eod",
+    })
+
+    DataProvider().addDataset({
+        "name": "spy_options_eod2",
+        "source": "DataFrame",
+        "set": pd.read_csv("exampleData/spy_options_eod.csv"),
+    })
+
+    DataProvider().addDataset({
+        "name": "spy_options_eod3",
+        "source": "File",
+        "set": "exampleData/spy_options_eod.csv",
+    })
